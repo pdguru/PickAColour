@@ -1,5 +1,6 @@
 package com.pdg.colourselector
 
+import android.arch.lifecycle.ViewModelProvider
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -21,20 +22,14 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.google.gson.GsonBuilder
-
+import com.pdg.colourselector.viewmodels.ColourSelectorViewModel
 
 
 class ColourSelector : AppCompatActivity() {
 
     lateinit var token: String
     lateinit var apiHelper: ApiHelper
-
-    val coloursArray = arrayOf(
-        Colour("Red", R.color.red), Colour("Lime", R.color.lime), Colour("Blue", R.color.blue),
-        Colour("Yellow", R.color.yellow), Colour("Cyan", R.color.cyan), Colour("Magenta", R.color.magenta),
-        Colour("Maroon", R.color.maroon), Colour("Green", R.color.green), Colour("Purple", R.color.purple),
-        Colour("Navy", R.color.navy)
-    )
+    lateinit var colourSelectorViewModel: ColourSelectorViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,14 +38,17 @@ class ColourSelector : AppCompatActivity() {
         token = SharedPref.getToken(this@ColourSelector)
         Log.i(Constants.TAG, "🎨 Colour Token: $token")
 
+        colourSelectorViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(ColourSelectorViewModel::class.java)
+
         getSavedColour()
 
-        colourList.adapter = CustomListAdapter(this, coloursArray)
+        colourList.adapter = CustomListAdapter(this, colourSelectorViewModel.coloursArray)
 
         colourList.setOnItemClickListener { parent, view, position, id ->
-            setSelectedColour(coloursArray[position].resID)
-            Log.i(Constants.TAG, "🎨 resID: ${coloursArray[position].resID}")
-            saveSelectedColour(coloursArray[position])
+            setSelectedColour(colourSelectorViewModel.coloursArray[position].resID)
+            Log.i(Constants.TAG, "🎨 resID: ${colourSelectorViewModel.coloursArray[position].resID}")
+            saveSelectedColour(colourSelectorViewModel.coloursArray[position])
         }
     }
 
@@ -71,12 +69,12 @@ class ColourSelector : AppCompatActivity() {
         }
     }
 
-    private fun getSavedColour() {
+    public fun getSavedColour() {
 
         initRetrofitBuilder()
         val call = apiHelper.getColour(
-            "api/v1/storage/${SharedPref.getStorageID(this@ColourSelector)}",
-            token, Constants.CONTENT_TYPE
+            "api/v1/storage/${SharedPref.getStorageID(this)}",
+            SharedPref.getToken(this), Constants.CONTENT_TYPE
         )
         Log.i(
             Constants.TAG, "➡️ saved call: " + call.request()
@@ -239,8 +237,8 @@ class ColourSelector : AppCompatActivity() {
                         "✅️ Details successfully deleted.",
                         Toast.LENGTH_LONG
                     ).show()
-                    SharedPref.setToken("",this@ColourSelector)
-                    SharedPref.setStorageID(-1,this@ColourSelector)
+                    SharedPref.setToken("", this@ColourSelector)
+                    SharedPref.setStorageID(-1, this@ColourSelector)
                     finish()
                 } else {
                     Log.d(Constants.TAG, "❌ Delete -> onResponse: SOMETHING WENT WRONG: " + response.toString())
@@ -259,6 +257,10 @@ class ColourSelector : AppCompatActivity() {
                     .show()
             }
         })
+    }
+
+    override fun onBackPressed() {
+        finish()
     }
 }
 
