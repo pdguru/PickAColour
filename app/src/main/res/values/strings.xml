@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Pick a colour</string>
+    <!-- Strings related to login -->
+    <string name="prompt_uname">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+
+</resources>
